@@ -2,7 +2,7 @@ import os
 from config import TRUNCATE_LIMIT
 
 
-def get_file_content(working_directory, file_path):
+def get_file_content(working_directory, file_path="."):
     abs_working_directory = os.path.abspath(working_directory)
     target_file = os.path.abspath(os.path.join(working_directory, file_path))
 

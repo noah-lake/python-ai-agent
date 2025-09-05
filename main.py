@@ -2,7 +2,15 @@ import os
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
+from config import system_prompt
 import sys
+from functions.get_files_info import schema_get_files_info
+
+available_functions = types.Tool(
+    function_declarations=[
+        schema_get_files_info,
+    ]
+)
 
 
 def main():
@@ -20,8 +28,15 @@ def main():
     res = client.models.generate_content(
         model="gemini-2.0-flash-001",
         contents=messages,
+        config=types.GenerateContentConfig(
+            tools=[available_functions], system_instruction=system_prompt
+        ),
     )
-    print(res.text)
+    if len(res.function_calls) > 0:
+        for call in res.function_calls:
+            print(f"Calling function: {call.name}({call.args})")
+    else:
+        print(res.text)
 
     try:
         if sys.argv[2] == "--verbose":
