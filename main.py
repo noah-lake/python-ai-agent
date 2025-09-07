@@ -4,7 +4,8 @@ from google import genai
 from google.genai import types
 from prompts import system_prompt
 import sys
-from call_function import available_functions
+from available_functions import available_functions
+from functions.call_function import call_function
 
 
 def main():
@@ -28,17 +29,19 @@ def main():
     )
     if len(res.function_calls) > 0:
         for call in res.function_calls:
-            print(f"Calling function: {call.name}({call.args})")
+            function_call_result = call_function(call)
+            if not function_call_result.parts[0].function_response.response:
+                raise Exception("Function response not found.")
+            else:
+                try:
+                    if sys.argv[2] == "--verbose":
+                        print(
+                            f"-> {function_call_result.parts[0].function_response.response}"
+                        )
+                except IndexError:
+                    pass
     else:
         print(res.text)
-
-    try:
-        if sys.argv[2] == "--verbose":
-            print(
-                f"User prompt: {content}, Prompt tokens: {res.usage_metadata.prompt_token_count}, Response tokens: {res.usage_metadata.candidates_token_count}"
-            )
-    except IndexError:
-        pass
 
 
 if __name__ == "__main__":
